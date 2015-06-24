@@ -4,7 +4,7 @@ from setuptools import setup
 
 import sys, os
 
-version = "0.0.1"
+version = "0.0.3"
 
 #require python3
 #exit with message if we're not using Python 3:
@@ -28,7 +28,8 @@ setup(name='acs_lib',
           'Programming Language :: Python :: 3.4',
           'Topic :: Scienctific/Engineering'],
       license='TBD',
-      packages=['acs_lib'],
+      packages=['acs_lib',
+                'acs_lib.acs_network'],
       #note that we do not include all the real dependencies here (like matplotlib etc)
       # as that breaks the pip install. It seems that pip is not smart enough to
       # use the system versions of these dependencies, so it tries to download and install
