@@ -11,6 +11,8 @@
 import time
 import ap_lib.ap_enumerations as enums
 
+from acs_lib.acs_enums import Health
+
 class ACS_UAVState(object):
     '''
     Contains state information for a single UAV.
@@ -29,12 +31,13 @@ class ACS_UAVState(object):
         self.__subswarm = 0
         self.__ctl_mode = 0
         self.__swarm_behavior = 0
-        self.__last_status_update = 0.0 #last time SwarmCommander updated status
+        self.__last_status_update = 0.0 #last time this class updated status
         self.__last_status_ts = 0.0     #last status message timestamp
         
         #pose variables
         self.__lat = 0.0
         self.__lon = 0.0
+        self.__alt = 0.0
         self.__quat = (0.0, 0.0, 0.0, 0.0)
         self.__last_pose_update = 0.0   #last time SwarmCommander updated pose
         self.__last_pose_ts = 0.0       #last pose status timestamp
@@ -126,6 +129,9 @@ class ACS_UAVState(object):
     def get_lon(self):
         return self.__lon
 
+    def get_alt(self):
+        return self.__alt
+
     def get_quat(self):
         return self.__quat
 
@@ -134,6 +140,42 @@ class ACS_UAVState(object):
 
     def get_last_pose_ts():
         return self.__last_pose_ts
+
+    #Returns bitmask of health state 
+    def get_health_all(self):
+        now = time.clock()
+
+        health_state = Health.HEALTHY
+
+        #Mode
+        if (self.__mode != enums.AUTO):
+            #print("Mode alert!\n")
+            health_state |= Health.MODE
+
+        #Battery
+        if (self.__batt_rem < 20 or self.__batt_vcc < 10.6):
+            #print("Batt red alert!\n")
+            health_state |= Health.BATT_RED
+        elif (self.__batt_rem < 40 or self.__batt_vcc < 10.8):
+            #print("Batt yellow alert!\n")
+            health_state |= Health.BATT_YELLOW
+      
+        #GPS
+        if self.get_gps_ok() == 0:
+            #print("GPS alert!\n")
+            health_state |= Health.GPS
+        
+        #Link 
+        if now - self.__last_status_update > 10.0:
+            #print("Link red alert!\n")
+            health_state |= Health.LINK_RED
+        elif now - self.__last_status_update > 5.0:
+            #print("Link yellow alert!\n")
+            health_state |= Health.LINK_YELLOW
+
+        #Armed?
+
+        return health_state
 
     def status_str(self):
         stat_str = ""
@@ -148,7 +190,6 @@ class ACS_UAVState(object):
         stat_str += "\tSwarm Behav: " + self.get_swarm_behavior_str() + "\n"
 
         return stat_str
-
 
     #There are no single-variable setters in this class ON PURPOSE.
     #I want variables to be set by network message only and all at once.
@@ -173,8 +214,8 @@ class ACS_UAVState(object):
         self.__ctl_mode = ctl_mode
         self.__swarm_behavior = swarm_behavior
 
-        self.last_status_ts = msg_timestamp
-        self.last_status_update = time.clock()
+        self.__last_status_ts = msg_timestamp
+        self.__last_status_update = time.clock()
 
     def update_pose(self, msg_timestamp, lat, lon, alt, quat):
         #only want this message if it is newer than the previous one
