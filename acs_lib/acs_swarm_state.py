@@ -43,12 +43,7 @@ class ACS_SwarmState(object):
     def update_uav_state(self, id, msg):
         #print("%d %s %d %d" % (msg.msg_src, name, msg.armed, msg.mode))
 
-        name = msg.name
-
-        #TODO: remove this workaround when we switch everthing to Python3:
-        name = name[2:name.find("\\x00")]
-
-        self.uav_states[id].update_status(msg.msg_secs, name, msg.mode, msg.batt_rem, msg.batt_vcc, msg.ok_gps, msg.swarm_state, msg.msg_sub, msg.ctl_mode, msg.swarm_behavior)
+        self.uav_states[id].update_status(msg)
 
     def update_uav_pose(self, id, msg):
         quat = (msg.q_x, msg.q_y, msg.q_z, msg.q_w)
