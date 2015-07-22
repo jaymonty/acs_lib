@@ -266,6 +266,16 @@ class ACS_NetworkGround(object):
         
         self.send_message_to(id, message)
 
+    def send_mission_config_for(self, id, alt, stack, tkoff_mode):
+        mc = acs_messages.MissionConfig()
+        mc.msg_dst = id
+        mc.msg_secs = 0
+        mc.msg_nsecs = 0
+        mc.std_alt = alt
+        mc.stack_num = stack
+        mc.takeoff_active = tkoff_mode
+        self.send_message_to(id, mc)
+
     # Might want to depricate this eventually (direct controller setup and
     # invocation via network message bypasses the swarm_manager node and
     # has potential race conditions that might lead to unsafe situations.
