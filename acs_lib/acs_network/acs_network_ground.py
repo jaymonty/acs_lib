@@ -7,7 +7,9 @@
 from ap_lib.acs_socket import Socket
 from ap_lib import acs_messages
 
-import subprocess, threading, time
+from atcommander import ATCommandSet
+
+import glob, subprocess, threading, time
 
 class ACS_NetworkGround(object):
     def __init__(self,device,port,sock_id):
@@ -86,7 +88,7 @@ class ACS_NetworkGround(object):
             sock = Socket(self.__acs_socket_id, self.__port, self.__device,
                     None, None, send_only=True)
         except Exception:
-            print("Couldn't start up the Swarm Commander ACS heartbeat.")
+            print("Couldn't start up the ACS ground heartbeat.")
             return
     
         message = acs_messages.Heartbeat()
@@ -333,6 +335,12 @@ class ACS_NetworkGround(object):
     def get_device(self):
         return self.__device
 
+    def get_port(self):
+        return self.__port
+
+    def get_acs_id(self):
+        return self.__acs_socket_id
+
     def slave_port_and_master_str(self, plane_id):
          #pick an aircraft-unique port
         slave_port = 15554 + int(plane_id)
@@ -359,4 +367,75 @@ class ACS_NetworkGround(object):
         #the mavproxy watcher thread needs to be aware of this new process,
         #so the slave channel can be closed when MAVProxy closes:
         self.__mavproxy_watchers[plane_id] = proc
+
+    #allow outside class to stop a slow or hung radio config attempt
+    def abort_radio_config(self):
+        self.__abort_SiK = True
+
+    #Throws Exception if unsuccessful configuring telem radio,
+    def open_mavproxy_SiK(self, plane_id):
+        radios = glob.glob("/dev/serial/by-id/usb-FTDI*")
+        if len(radios) < 1:
+            raise Exception("No telem radios found.")
+            return
+
+        self.__abort_SiK = False
+
+        #just use the first radio
+        atc = ATCommandSet(radios[0])
+
+        #calculate freq band based on id
+        minfreq = (plane_id % 3) * 9000 + 902000
+        maxfreq = (plane_id % 3) * 9000 + 910000
+
+        # Enumerate commands by function call
+        commands = [lambda: atc.leave_command_mode_force(),
+                    lambda: atc.unstick(),
+                    lambda: atc.enter_command_mode(),
+                    lambda: atc.set_param(ATCommandSet.PARAM_NETID,
+                                          plane_id),
+                    lambda: atc.set_param(ATCommandSet.PARAM_MIN_FREQ,
+                                          minfreq),
+                    lambda: atc.set_param(ATCommandSet.PARAM_MAX_FREQ,
+                                          maxfreq),
+                    lambda: atc.write_params(),
+                    lambda: atc.reboot(),
+                    lambda: atc.leave_command_mode()]
+
+        retries_left = 10
+        command = commands.pop(0)
+        while retries_left > 0 and self.__abort_SiK is not True:
+            try:
+                # Always give a little time for the radio to settle
+                time.sleep(0.1)
+                res = command()
+                if res == False:
+                    # Some commands return True/False, others return None
+                    # Only False is bad
+                    raise Exception("command failed")
+                if len(commands) == 0:
+                    # If no commands left, we're done
+                    break
+                command = commands.pop(0)
+            except Exception as ex:
+                print("Radio Config exception: " + str(ex) + ", retrying ...")
+                retries_left -= 1 
+
+        if retries_left <= 0:
+            raise Exception("Failed to config radio.")
+            return
+        
+        #wait a moment for the radio to finish config
+        time.sleep(0.5)
+        
+        if self.__abort_SiK is True:
+            raise Exception("User aborted radio config.")
+            return
+
+        #Fire up MAVProxy
+        subprocess.Popen( \
+            "xterm -e mavproxy.py --speech --console --map --master %s --baudrate 57600" % \
+            radios[0],
+            shell=True,
+            cwd="/tmp")
 
