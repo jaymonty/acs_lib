@@ -14,7 +14,7 @@ from threading import RLock
 import ap_lib.ap_enumerations as enums
 
 from acs_lib.acs_enums import Health
-
+from acs_lib.acs_ap_courier import ACS_AP_Courier
 
 class ACS_UAVState(object):
     '''
@@ -32,6 +32,7 @@ class ACS_UAVState(object):
         
         self.__mis_cur = 0
 
+        self.__fence_status = 2 #0=not_breached, 1=breached, 2=disabled
         self.__swarm_state = 0
         self.__subswarm = 0
         self.__ctl_mode = 0
@@ -54,10 +55,12 @@ class ACS_UAVState(object):
         #bitmask to capture health state
         self.__health_state = Health.HEALTHY
 
+        #fetches and stores autopilot messages when necessary
+        self.ap_courier = ACS_AP_Courier(self.__id)
+                
         #threading locks;
         self.__status_lock = RLock()
-        self.__pose_lock = RLock()
-        self.__ap_msg_lock = RLock()
+        self.__pose_lock = RLock()        
 
     def get_name(self):
         with self.__status_lock:
@@ -260,7 +263,6 @@ class ACS_UAVState(object):
             #TODO: Need a way to indicate gyro health
 
             if msg.ok_as == 0:
-                #print("AS alert!\n")
                 self.__health_state |= Health.ARSPD
 
             #TODO: verify this is a bool, not a float representing airspeed
@@ -280,12 +282,16 @@ class ACS_UAVState(object):
             #if msg.ok_prm == 0:
             #    self.__health_state |= Health.PRM_WRONG
 
-            #TODO: See if this covers the case of breached fences or fence off
-            #as opposed to only "fence uploaded"
-            #TODO: reactivate for field (during FX23)
-            #AND: make work for SITL (post event)
-            #if msg.ok_fen == 0:
-            #    self.__health_state |= Health.FENCE_WRONG
+            #TODO: make ok_fen work for SITL
+            if msg.ok_fen == 0:
+                self.__health_state |= Health.FENCE_WRONG
+
+            #TODO: restore fence alerts once the payload can tell
+            #me the fence state
+            #if msg.fence_status == 1:
+            #    self.__health_state |= Health.FENCE_BREACH
+            #if msg.fence_status == 2:
+            #    self.__health_state |= Health.FENCE_DISABLED
         
             if msg.ok_ral == 0:
                 self.__health_state |= Health.RAL_WRONG
@@ -319,6 +325,9 @@ class ACS_UAVState(object):
             self.__alt_rel = msg.alt_rel
             self.__airspeed = msg.airspeed
 
+            #TODO: restore after payload can tell me fence status
+            #self.__fence_status = msg.fence_status
+
             self.__swarm_state = msg.swarm_state
             self.__subswarm = msg.msg_sub
             self.__ctl_mode = msg.ctl_mode
@@ -344,4 +353,6 @@ class ACS_UAVState(object):
             self.__last_pose_ts = msg_timestamp
             self.__last_pose_update = time.clock()
 
-
+    def update_ap_msgs(self, msg):
+        self.ap_courier.update_ap_msgs(msg)
+        
