@@ -30,6 +30,9 @@ class ACS_SwarmState(object):
         elif isinstance(msg, acs_messages.Pose):
             self.update_uav_preprocess_msg(msg.msg_src, msg)
             self.update_uav_pose(msg.msg_src, msg)
+        elif isinstance(msg, acs_messages.PrevMsgAP):
+            self.update_uav_preprocess_msg(msg.msg_src, msg)
+            self.update_uav_ap_msgs(msg.msg_src, msg)
 
         #Currently not sending any info or throwing exceptions
         #on unrecognized messages.
@@ -37,8 +40,6 @@ class ACS_SwarmState(object):
     def update_uav_preprocess_msg(self, id, msg):
         if id not in self.uav_states:
             self.uav_states[id] = acs_uav_state.ACS_UAVState(id)
-
-        #TODO: process header
 
     def update_uav_state(self, id, msg):
         #print("%d %s %d %d" % (msg.msg_src, name, msg.armed, msg.mode))
@@ -48,6 +49,9 @@ class ACS_SwarmState(object):
     def update_uav_pose(self, id, msg):
         quat = (msg.q_x, msg.q_y, msg.q_z, msg.q_w)
         self.uav_states[id].update_pose(msg.msg_secs, msg.lat, msg.lon, msg.alt, quat)
+
+    def update_uav_ap_msgs(self, id, msg):
+        self.uav_states[id].update_ap_msgs(msg)
 
     def get_uav_ids(self):
         ids = []
