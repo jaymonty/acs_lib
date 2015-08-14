@@ -278,6 +278,13 @@ class ACS_NetworkGround(object):
         mc.takeoff_active = tkoff_mode
         self.send_message_to(id, mc)
 
+    def send_ap_msgs_request_for(self, id, n, since_seq):
+        msg = acs_messages.ReqPrevNMsgsAP()
+        msg.msg_dst = id
+        msg.n = n
+        msg.since_seq = since_seq
+        self.send_message_to(id, msg)
+
     # Might want to depricate this eventually (direct controller setup and
     # invocation via network message bypasses the swarm_manager node and
     # has potential race conditions that might lead to unsafe situations.
