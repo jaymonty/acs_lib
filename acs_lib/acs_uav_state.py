@@ -263,7 +263,7 @@ class ACS_UAVState(object):
             #TODO: Need a way to indicate gyro health
 
             if msg.ok_as == 0:
-                self.__health_state |= Health.ARSPD
+                self.__health_state |= Health.ARSPD_CAL
 
             #TODO: verify this is a bool, not a float representing airspeed
             #self.__as_calib = msg.airspeed
@@ -322,7 +322,7 @@ class ACS_UAVState(object):
         
             self.__mis_cur = msg.mis_cur
 
-            self.__alt_rel = msg.alt_rel
+            self.__alt_rel = msg.alt_rel / 1000.0
             self.__airspeed = msg.airspeed
 
             #TODO: restore after payload can tell me fence status
