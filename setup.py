@@ -4,7 +4,7 @@ from setuptools import setup
 
 import sys, os
 
-version = "0.0.3"
+version = "0.1.0"
 
 #require python3
 #exit with message if we're not using Python 3:
