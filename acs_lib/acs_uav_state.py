@@ -32,7 +32,7 @@ class ACS_UAVState(object):
         
         self.__mis_cur = 0
 
-        self.__fence_status = 2 #0=not_breached, 1=breached, 2=disabled
+        self.__fence_state = 2 #0=not_breached, 1=breached, 2=disabled
         self.__swarm_state = 0
         self.__subswarm = 0
         self.__ctl_mode = 0
@@ -286,12 +286,10 @@ class ACS_UAVState(object):
             if msg.ok_fen == 0:
                 self.__health_state |= Health.FENCE_WRONG
 
-            #TODO: restore fence alerts once the payload can tell
-            #me the fence state
-            #if msg.fence_status == 1:
-            #    self.__health_state |= Health.FENCE_BREACH
-            #if msg.fence_status == 2:
-            #    self.__health_state |= Health.FENCE_DISABLED
+            if msg.fence_state == 1:
+                self.__health_state |= Health.FENCE_BREACH
+            if msg.fence_state == 2:
+                self.__health_state |= Health.FENCE_DISABLED
         
             if msg.ok_ral == 0:
                 self.__health_state |= Health.RAL_WRONG
@@ -325,8 +323,7 @@ class ACS_UAVState(object):
             self.__alt_rel = msg.alt_rel / 1000.0
             self.__airspeed = msg.airspeed
 
-            #TODO: restore after payload can tell me fence status
-            #self.__fence_status = msg.fence_status
+            self.__fence_state = msg.fence_state
 
             self.__swarm_state = msg.swarm_state
             self.__subswarm = msg.msg_sub
