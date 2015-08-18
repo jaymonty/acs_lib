@@ -151,7 +151,7 @@ class ACS_NetworkGround(object):
 
     def send_message_to(self, id, message):
         message.msg_dst = id
-        cur_time = time.clock()
+        cur_time = time.time()
         message.msg_secs = int(cur_time)
         message.msg_nsecs = int(1e9 * (cur_time - int(cur_time)))
         
