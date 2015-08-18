@@ -201,7 +201,7 @@ class ACS_UAVState(object):
 
     #Returns bitmask of health state 
     def get_health_state(self):
-        now = time.clock()   
+        now = time.time()   
         
         with self.__status_lock: 
             #Link 
@@ -331,7 +331,7 @@ class ACS_UAVState(object):
             self.__swarm_behavior = msg.swarm_behavior
         
             self.__last_status_ts = msg.msg_secs
-            self.__last_status_update = time.clock()
+            self.__last_status_update = time.time()
         
             self.set_health_state(msg)
 
@@ -348,7 +348,7 @@ class ACS_UAVState(object):
             self.__quat = quat
 
             self.__last_pose_ts = msg_timestamp
-            self.__last_pose_update = time.clock()
+            self.__last_pose_update = time.time()
 
     def update_ap_msgs(self, msg):
         self.ap_courier.update_ap_msgs(msg)
