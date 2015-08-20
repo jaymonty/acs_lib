@@ -26,7 +26,7 @@ class ACS_NetworkGround(object):
         self.__heartbeat_enabled = True
         self.__heartbeat_count = 0
         self.__heartbeat_rate = 2.0 #Hz
-                
+
         self.init_comm_threads()
 
         self.__mavproxy_watchers = {}
@@ -45,7 +45,7 @@ class ACS_NetworkGround(object):
             for id, proc in self.__mavproxy_watchers.items():
                 if proc.poll() is not None: #has the process closed?
                     #shut down slave
-                    self.close_mavproxy_slave(id) 
+                    self.close_mavproxy_slave(id)
 
                     #mark entry for removal from dictionary
                     entries_to_remove.append(id)
@@ -90,7 +90,7 @@ class ACS_NetworkGround(object):
         except Exception:
             print("Couldn't start up the ACS ground heartbeat.")
             return
-    
+
         message = acs_messages.Heartbeat()
         message.msg_dst = Socket.ID_BCAST_ALL
         message.msg_secs = 0
@@ -101,7 +101,7 @@ class ACS_NetworkGround(object):
             if self.__heartbeat_enabled:
                 sock.send(message)
                 self.__heartbeat_count += 1
-                message.counter += self.__heartbeat_count
+                message.counter = self.__heartbeat_count
 
             time.sleep(1.0 / self.__heartbeat_rate)
 
@@ -139,7 +139,7 @@ class ACS_NetworkGround(object):
                 continue          # Check for more messages in queue
             if msg is None:       # No messages available in queue
                 continue
-        
+
             if (self.__msg_rcvd_cb is not None):
                 self.__msg_rcvd_cb(msg)
 
@@ -154,7 +154,7 @@ class ACS_NetworkGround(object):
         cur_time = time.time()
         message.msg_secs = int(cur_time)
         message.msg_nsecs = int(1e9 * (cur_time - int(cur_time)))
-        
+
         res = None
         try:
             res = self.__sock.send(message)
@@ -262,10 +262,10 @@ class ACS_NetworkGround(object):
     def set_autopilot_heartbeat_for(self, id, enable=True):
         message = acs_messages.PayloadHeartbeat()
         message.enable = enable
-        
+
 	#only set the "fl_rel" flag for messages that _must_ be reliable:
         message.msg_fl_rel = False
-        
+
         self.send_message_to(id, message)
 
     def send_mission_config_for(self, id, alt, stack, tkoff_mode):
@@ -311,7 +311,7 @@ class ACS_NetworkGround(object):
         ss.channel = chan
         ss.enable = enable
         ss.msg_fl_rel = True
-    
+
         self.__sock.send(ss)
 
     def enable_slave(self, target_id, port, chan):
@@ -330,7 +330,7 @@ class ACS_NetworkGround(object):
 
         #pause a sec for thread(s) to cleanup
         time.sleep(1)
-        
+
         self.__device = device_name
 
         #start socket on new device
@@ -354,7 +354,7 @@ class ACS_NetworkGround(object):
         master_str = "udp:%s:%u" % (self.__my_ip, slave_port)
 
         return (slave_port, master_str)
-    
+
     def close_mavproxy_slave(self, plane_id):
         (slave_port, master_str) = self.slave_port_and_master_str(plane_id)
         self.disable_slave(plane_id, slave_port, master_str)
@@ -366,7 +366,7 @@ class ACS_NetworkGround(object):
 
         (slave_port, mavproxy_master) = self.slave_port_and_master_str(plane_id)
 
-        self.enable_slave(plane_id, slave_port, mavproxy_master) 
+        self.enable_slave(plane_id, slave_port, mavproxy_master)
 
         # Start up a MAVProxy instance and connect to slave channel
         proc = subprocess.Popen( ["/usr/bin/xterm", "-e", "mavproxy.py --baudrate 57600 --master " + mavproxy_master + " --speech --aircraft uav_" +  plane_id] )
@@ -426,15 +426,15 @@ class ACS_NetworkGround(object):
                 command = commands.pop(0)
             except Exception as ex:
                 print("Radio Config exception: " + str(ex) + ", retrying ...")
-                retries_left -= 1 
+                retries_left -= 1
 
         if retries_left <= 0:
             raise Exception("Failed to config radio.")
             return
-        
+
         #wait a moment for the radio to finish config
         time.sleep(0.5)
-        
+
         if self.__abort_SiK is True:
             raise Exception("User aborted radio config.")
             return
@@ -445,4 +445,3 @@ class ACS_NetworkGround(object):
             radios[0],
             shell=True,
             cwd="/tmp")
-
