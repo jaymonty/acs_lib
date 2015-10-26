@@ -203,9 +203,10 @@ class ACS_NetworkGround(object):
 
         self.send_message_to(id, message)
 
-    def swarm_behavior_for(self, id, behavior):
+    def swarm_behavior_for(self, id, behavior, params):
         message = acs_messages.SwarmBehavior()
         message.swarm_behavior = behavior
+        message.swarm_parameters = params
         message.msg_fl_rel = True
 
         self.send_message_to(id, message)
@@ -219,40 +220,6 @@ class ACS_NetworkGround(object):
     def pause_swarm_behavior_for(self, id, pause):
         message = acs_messages.PauseSwarmBehavior()
         message.behavior_pause = pause
-        message.msg_fl_rel = True
-
-        self.send_message_to(id, message)
-
-    def swarm_egress_for(self, id):
-        message = acs_messages.SwarmEgress()
-        message.msg_fl_rel = True
-
-        self.send_message_to(id, message)
-
-    def swarm_follow_for(self, id, distance, angle, stack_formation):
-        message = acs_messages.SwarmFollow()
-        message.distance = distance
-        message.angle = angle
-        message.stack_formation = stack_formation
-        message.msg_fl_rel = True
-
-        self.send_message_to(id, message)
-
-    def swarm_sequence_land_for(self, id, ldg_wpt):
-        message = acs_messages.SwarmSequenceLand()
-        message.ldg_wpt = ldg_wpt
-        message.msg_fl_rel = True
-
-        self.send_message_to(id, message)
-
-    def swarm_search_for(self, id, searchAreaLength, searchAreaWidth, lat, lon, masterSearcherID, searchAlgoEnum):
-        message = acs_messages.SwarmSearch()
-        message.searchAreaLength = searchAreaLength
-        message.searchAreaWidth = searchAreaWidth
-        message.lat = lat
-        message.lon = lon
-        message.masterSearcherID = masterSearcherID
-        message.searchAlgoEnum = searchAlgoEnum
         message.msg_fl_rel = True
 
         self.send_message_to(id, message)
@@ -289,23 +256,6 @@ class ACS_NetworkGround(object):
         msg.n = n
         msg.since_seq = since_seq
         self.send_message_to(id, msg)
-
-    # Might want to depricate this eventually (direct controller setup and
-    # invocation via network message bypasses the swarm_manager node and
-    # has potential race conditions that might lead to unsafe situations.
-    # Functionality in SwarmCommander will be eliminated before April event.
-    def set_follower_params_for(self, id, leader_id, follow_range, \
-                                offset_angle, alt_mode, ctrl_alt, seq_num):
-        message = acs_messages.FollowerSetup()
-        message.leader_id = leader_id
-        message.follow_range = follow_range
-        message.offset_angle = offset_angle
-        message.alt_mode = alt_mode
-        message.control_alt = ctrl_alt
-        message.seq = seq_num
-        message.msg_fl_rel = True
-
-        self.send_message_to(id, message)
 
     def setup_mavlink_slave_ch(self, target_id, port, chan, enable=True):
         ''' Open/close a slave mavlink channel to the aircraft '''
