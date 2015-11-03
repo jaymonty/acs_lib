@@ -105,13 +105,15 @@ class ACS_NetworkGround(object):
 
             time.sleep(1.0 / self.__heartbeat_rate)
 
-    def open_socket(self):
+    def open_socket(self, bcst_bind=True):
         self.__my_ip = None
         self.__bcast_ip = None
 
         try:
             self.__sock = Socket(self.__acs_socket_id, self.__port,
-                    self.__device, self.__my_ip, self.__bcast_ip)
+                    self.__device, self.__my_ip, self.__bcast_ip, 
+                    bcast_bind=bcst_bind)
+
         except Exception as e:
             print("Couldn't start up socket on interface", self.__device)
             return
