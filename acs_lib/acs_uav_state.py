@@ -195,7 +195,7 @@ class ACS_UAVState(object):
         with self.__pose_lock: 
             return self.__last_pose_update
 
-    def get_last_pose_ts():
+    def get_last_pose_ts(self):
         with self.__pose_lock: 
             return self.__last_pose_ts
 
