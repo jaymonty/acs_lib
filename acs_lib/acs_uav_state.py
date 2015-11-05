@@ -35,7 +35,6 @@ class ACS_UAVState(object):
         self.__fence_state = 2 #0=not_breached, 1=breached, 2=disabled
         self.__swarm_state = 0
         self.__subswarm = 0
-        self.__ctl_mode = 0
         self.__swarm_behavior = 0
         self.__last_status_update = 0.0 #last time this class updated status
         self.__last_status_ts = 0.0     #last status message timestamp
@@ -131,20 +130,6 @@ class ACS_UAVState(object):
         with self.__status_lock:
             return self.__subswarm
 
-    def get_ctl_mode(self):
-        with self.__status_lock:
-            return self.__ctl_mode
-
-    def get_ctl_mode_str(self):
-        ret_val = 'ERROR'
-        with self.__status_lock:
-            try:
-                ret_val = enums.CTL_MODES[self.__ctl_mode]
-            except:
-                pass # failed to get ctl mode string, assume bad index
-
-        return ret_val
-
     def get_swarm_behavior(self):
         with self.__status_lock:
             return self.__swarm_behavior
@@ -221,7 +206,6 @@ class ACS_UAVState(object):
         stat_str += "\tBatt:     " + str(self.get_batt_rem()) + "\n"
         stat_str += "\tBatt V:   " + str(self.get_batt_vcc()) + "\n"
         stat_str += "\tGPS OK?   " + str(self.get_gps_ok()) + "\n"
-        stat_str += "\tCtl Mode: " + str(self.get_ctl_mode_str()) + "\n"
         stat_str += "\tSubswarm: " + str(self.get_subswarm())
         stat_str += "\tSwarm State: " + self.get_swarm_state_str() 
         stat_str += "\tSwarm Behav: " + self.get_swarm_behavior_str() + "\n"
@@ -327,7 +311,6 @@ class ACS_UAVState(object):
 
             self.__swarm_state = msg.swarm_state
             self.__subswarm = msg.msg_sub
-            self.__ctl_mode = msg.ctl_mode
             self.__swarm_behavior = msg.swarm_behavior
         
             self.__last_status_ts = msg.msg_secs
