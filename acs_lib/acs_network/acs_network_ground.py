@@ -111,7 +111,7 @@ class ACS_NetworkGround(object):
 
         try:
             self.__sock = Socket(self.__acs_socket_id, self.__port,
-                    self.__device, self.__my_ip, self.__bcast_ip, 
+                    self.__device, self.__my_ip, self.__bcast_ip,
                     bcast_bind=bcst_bind)
 
         except Exception as e:
@@ -157,6 +157,9 @@ class ACS_NetworkGround(object):
         message.msg_secs = int(cur_time)
         message.msg_nsecs = int(1e9 * (cur_time - int(cur_time)))
 
+        return self.send_message(message)
+
+    def send_message(self, message):
         res = None
         try:
             res = self.__sock.send(message)
