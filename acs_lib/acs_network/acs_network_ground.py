@@ -12,7 +12,7 @@ from atcommander import ATCommandSet
 import glob, subprocess, threading, time
 
 class ACS_NetworkGround(object):
-    def __init__(self,device,port,sock_id):
+    def __init__(self,device,port,sock_id,hb=True):
 
         self.__port = port
         self.__device = device
@@ -23,7 +23,7 @@ class ACS_NetworkGround(object):
 
         self.__msg_rcvd_cb = None
 
-        self.__heartbeat_enabled = True
+        self.__heartbeat_enabled = hb
         self.__heartbeat_count = 0
         self.__heartbeat_rate = 2.0 #Hz
 
