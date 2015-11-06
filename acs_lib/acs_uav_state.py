@@ -288,12 +288,8 @@ class ACS_UAVState(object):
             if (self.__last_status_ts > msg.msg_secs):
                 return
 
-        name = msg.name
-        #TODO: remove this workaround when we switch everthing to Python3:
-        name = name[2:name.find("\\x00")]
-
         with self.__status_lock:
-            self.__name = name
+            self.__name = msg.name
             if self.__mode != msg.mode:
                 self.__new_mode = True
             else:
