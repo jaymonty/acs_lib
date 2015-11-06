@@ -17,7 +17,8 @@ class ACS_Config(object):
         self.__config = configparser.ConfigParser()
         
         if self.__config.read(self.__config_file) == []:
-            print("Unable to parse config file:", self.__config_file)
+            print("No config file, ", self.__config_file, 
+            " starting with defaults." )
             #Add known sections for later use:
             self.__config.add_section('NETWORK')
 
