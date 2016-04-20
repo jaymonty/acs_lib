@@ -68,12 +68,18 @@ class ACS_UAVState(object):
         #bitmask to capture health state
         self.__health_state = Health.HEALTHY
 
+        #waypoints
+        self.__num_ap_waypoints = -1  #-1 = means "don't know how many waypoints
+                                      #            aboard autopilot"
+        self.__waypoints = {}
+
         #fetches and stores autopilot messages when necessary
         self.ap_courier = ACS_AP_Courier(self.__id)
                 
         #threading locks;
         self.__status_lock = RLock()
-        self.__pose_lock = RLock()        
+        self.__pose_lock = RLock()
+
 
     def get_name(self):
         with self.__status_lock:
@@ -345,4 +351,37 @@ class ACS_UAVState(object):
 
     def update_ap_msgs(self, msg):
         self.ap_courier.update_ap_msgs(msg)
+
+    def update_wp_from_ap(self, msg):
+        self.__waypoints[msg.seq] = msg
+
+    def clear_wps(self):
+        self.__waypoints = {}
+
+    #this is the number of waypoints we have stored LOCALLY -- not necessarily
+    #the same as the number waypoints stored at the autopilot.
+    def get_num_waypoints(self):
+        return len(self.__waypoints)
+
+    def get_waypoints(self):
+        return self.__waypoints
         
+    def set_num_ap_waypoints(self, num):
+        self.__num_ap_waypoints = int(num)
+
+    #this is the number of waypoints the autopilot has said it has -- not
+    #necessarily the same as the number of waypoints stored LOCALLY
+    def get_num_ap_waypoints(self):
+        return self.__num_ap_waypoints
+
+    #returns a list of the indexes of the waypoints that are missing, given
+    #that there should be a dictionary of size self.__num_ap_waypoints in 
+    #self.__waypoints
+    def get_missing_waypoint_indexes(self):
+        missing_wps = []
+        for i in range(0, self.__num_ap_waypoints):
+            if i not in self.__waypoints:
+                missing_wps.append(i)
+
+        return missing_wps
+
