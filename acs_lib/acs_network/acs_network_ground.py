@@ -265,6 +265,12 @@ class ACS_NetworkGround(object):
         mc.takeoff_active = tkoff_mode
         self.send_message_to(id, mc)
 
+    def send_wp_request_for(self, id):
+        msg = acs_messages.ReqAPWaypoints()
+        msg.msg_dst = id
+
+        self.send_message_to(id,msg)
+
     def send_ap_msgs_request_for(self, id, n, since_seq):
         msg = acs_messages.ReqPrevNMsgsAP()
         msg.msg_dst = id
