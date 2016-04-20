@@ -36,7 +36,7 @@ class ACS_SwarmState(object):
         #Dictionary of UAVState classes that hold each UAV's state
         #This dictionary constitutes the Swarm.
         self.uav_states = {}
-
+        
     def process_msg(self, msg):
         if isinstance(msg, acs_messages.FlightStatus): 
             self.update_uav_preprocess_msg(msg.msg_src, msg)
@@ -48,19 +48,12 @@ class ACS_SwarmState(object):
             self.update_uav_preprocess_msg(msg.msg_src, msg)
             self.update_uav_ap_msgs(msg.msg_src, msg)
         elif isinstance(msg, acs_messages.WaypointMsg):
-            print("WaypointMsg debugging:")
-            print("seq: " + str(msg.seq))
-            print("frame: " + str(msg.frame))
-            print("command: " + str(msg.command))
-            print("current: " + str(msg.current))
-            print("autocontinue: " + str(msg.autocontinue))
-            print("param1: " + str(msg.param1))
-            print("param2: " + str(msg.param2))
-            print("param3: " + str(msg.param3))
-            print("param4: " + str(msg.param4))
-            print("x: " + str(msg.x))
-            print("y: " + str(msg.y))
-            print("z: " + str(msg.z))
+            self.update_uav_preprocess_msg(msg.msg_src, msg)
+            self.update_waypoint_from_ap(msg.msg_src, msg)
+        elif isinstance(msg, acs_messages.ParamAPMsg):
+            if msg.param_name.upper() == "MIS_TOTAL":
+                self.update_uav_preprocess_msg(msg.msg_src, msg)
+                self.update_wp_count_from_ap(msg.msg_src, msg.param_value)
 
         #Currently not sending any info or throwing exceptions
         #on unrecognized messages.
@@ -78,8 +71,14 @@ class ACS_SwarmState(object):
         quat = (msg.q_x, msg.q_y, msg.q_z, msg.q_w)
         self.uav_states[id].update_pose(msg.msg_secs, msg.lat, msg.lon, msg.alt, quat)
 
-    def update_uav_ap_msgs(self, id, msg):
-        self.uav_states[id].update_ap_msgs(msg)
+    def update_waypoint_from_ap(self, id, msg):
+        self.uav_states[id].update_wp_from_ap(msg)
+                
+    def update_wp_count_from_ap(self, id, wp_count):
+        self.uav_states[id].set_num_ap_waypoints(wp_count)
+
+    def update_uav_ap_msgs(self, id, num):
+        self.uav_states[id].update_ap_msgs(msg, num)
 
     def get_uav_ids(self):
         ids = []
