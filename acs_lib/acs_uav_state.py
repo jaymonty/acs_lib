@@ -73,6 +73,9 @@ class ACS_UAVState(object):
                                       #            aboard autopilot"
         self.__waypoints = {}
 
+        #autopilot parameters we have received:
+        self.__ap_params = {}
+
         #fetches and stores autopilot messages when necessary
         self.ap_courier = ACS_AP_Courier(self.__id)
                 
@@ -349,6 +352,12 @@ class ACS_UAVState(object):
             self.__last_pose_ts = msg_timestamp
             self.__last_pose_update = time.time()
 
+    def update_ap_param(self, p_name, p_value):
+        self.__ap_params[str(p_name)] = p_value
+
+        if p_name is "MIS_TOTAL":
+            self.set_num_ap_waypoints(p_value) 
+
     def update_ap_msgs(self, msg):
         self.ap_courier.update_ap_msgs(msg)
 
@@ -366,7 +375,17 @@ class ACS_UAVState(object):
     def get_waypoints(self):
         return self.__waypoints
         
+    def get_ap_param(self, p_name):
+        if p_name in self.__ap_params:
+            return self.__ap_params[str(p_name)]
+
+        return None
+
     def set_num_ap_waypoints(self, num):
+        if num is None:
+            self.__num_ap_waypoints = -1
+            return
+
         self.__num_ap_waypoints = int(num)
 
     #this is the number of waypoints the autopilot has said it has -- not
