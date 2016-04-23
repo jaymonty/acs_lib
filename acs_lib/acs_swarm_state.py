@@ -51,9 +51,8 @@ class ACS_SwarmState(object):
             self.update_uav_preprocess_msg(msg.msg_src, msg)
             self.update_waypoint_from_ap(msg.msg_src, msg)
         elif isinstance(msg, acs_messages.ParamAPMsg):
-            if msg.param_name.upper() == "MIS_TOTAL":
-                self.update_uav_preprocess_msg(msg.msg_src, msg)
-                self.update_wp_count_from_ap(msg.msg_src, msg.param_value)
+            self.update_uav_preprocess_msg(msg.msg_src, msg)
+            self.update_uav_ap_param(msg.msg_src, msg)
 
         #Currently not sending any info or throwing exceptions
         #on unrecognized messages.
@@ -73,12 +72,12 @@ class ACS_SwarmState(object):
 
     def update_waypoint_from_ap(self, id, msg):
         self.uav_states[id].update_wp_from_ap(msg)
-                
-    def update_wp_count_from_ap(self, id, wp_count):
-        self.uav_states[id].set_num_ap_waypoints(wp_count)
+   
+    def update_uav_ap_param(self, id, msg):
+        self.uav_states[id].update_ap_param(msg.param_name, msg.param_value)
 
-    def update_uav_ap_msgs(self, id, num):
-        self.uav_states[id].update_ap_msgs(msg, num)
+    def update_uav_ap_msgs(self, id, msg):
+        self.uav_states[id].update_ap_msgs(msg)
 
     def get_uav_ids(self):
         ids = []
