@@ -286,6 +286,12 @@ class ACS_NetworkGround(object):
 
         self.send_message_to(id, msg)      
 
+    def send_fence_request_for(self, id):
+        msg = acs_messages.ReqAPFence()
+        msg.msg_dst = id
+
+        self.send_message_to(id, msg)
+
     def send_ap_msgs_request_for(self, id, n, since_seq):
         msg = acs_messages.ReqPrevNMsgsAP()
         msg.msg_dst = id
