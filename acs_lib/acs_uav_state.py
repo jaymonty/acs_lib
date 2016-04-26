@@ -73,6 +73,10 @@ class ACS_UAVState(object):
                                       #            aboard autopilot"
         self.__waypoints = {}
 
+        #fence 
+        self.__fence_size = -1
+        self.__fencepoints = {}
+
         #autopilot parameters we have received:
         self.__ap_params = {}
 
@@ -364,8 +368,15 @@ class ACS_UAVState(object):
     def update_wp_from_ap(self, msg):
         self.__waypoints[msg.seq] = msg
 
+    def update_fence_point_from_ap(self, msg):
+        self.__fencepoints[msg.index] = msg
+        self.__fence_size = msg.fen_size
+
     def clear_wps(self):
         self.__waypoints = {}
+
+    def clear_fence(self):
+        self.__fencepoints = {}
 
     #this is the number of waypoints we have stored LOCALLY -- not necessarily
     #the same as the number waypoints stored at the autopilot.
@@ -374,12 +385,18 @@ class ACS_UAVState(object):
 
     def get_waypoints(self):
         return self.__waypoints
-        
+       
+    def get_fencepoints(self):
+        return self.__fencepoints
+
     def get_ap_param(self, p_name):
         if p_name in self.__ap_params:
             return self.__ap_params[str(p_name)]
 
         return None
+
+    def set_fence_size(self, s):
+        self.__fence_size = s
 
     def set_num_ap_waypoints(self, num):
         if num is None:
@@ -387,6 +404,26 @@ class ACS_UAVState(object):
             return
 
         self.__num_ap_waypoints = int(num)
+
+    #This is the number of fence points at the AUTOPILOT --
+    #not necessarily the same as the number of fence points stored LOCALLY
+    def get_fence_size(self):
+        return self.__fence_size
+
+    #returns a list of the indexes of the fence points that are missing, given
+    #that there should be dictionary of size self.__fence_size fence points
+    #in self.__fencepoints.  If self.__fence_size == -1, this method returns
+    #single-valued list = [-1]
+    def get_missing_fence_indexes(self):
+        if self.__fence_size == -1:
+            return [-1]
+        missing_fps = []
+
+        for i in range(0, self.__fence_size):
+            if i not in self.__fencepoints:
+                missing_fps.append(i)
+
+        return missing_fps
 
     #this is the number of waypoints the autopilot has said it has -- not
     #necessarily the same as the number of waypoints stored LOCALLY
