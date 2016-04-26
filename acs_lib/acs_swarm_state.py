@@ -53,6 +53,10 @@ class ACS_SwarmState(object):
         elif isinstance(msg, acs_messages.ParamAPMsg):
             self.update_uav_preprocess_msg(msg.msg_src, msg)
             self.update_uav_ap_param(msg.msg_src, msg)
+        elif isinstance(msg, acs_messages.FencePoint):
+            print("Received FencePoint msg, index:", msg.index)
+            self.update_uav_preprocess_msg(msg.msg_src, msg)
+            self.update_fence_from_ap(msg.msg_src, msg)
 
         #Currently not sending any info or throwing exceptions
         #on unrecognized messages.
@@ -73,6 +77,9 @@ class ACS_SwarmState(object):
     def update_waypoint_from_ap(self, id, msg):
         self.uav_states[id].update_wp_from_ap(msg)
    
+    def update_fence_from_ap(self, id, msg):
+        self.uav_states[id].update_fence_point_from_ap(msg)
+    
     def update_uav_ap_param(self, id, msg):
         self.uav_states[id].update_ap_param(msg.param_name, msg.param_value)
 
